@@ -3,7 +3,7 @@ import * as authController from '../../controllers/authController/auth.controlle
 
 function getAuthRoutes() {
   const router = Router();
-  router.get('/login', authController.login);
+  router.get('/users', authController.getUsers);
   return router;
 }
 

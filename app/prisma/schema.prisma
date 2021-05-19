@@ -1,0 +1,134 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String         @id @default(cuid())
+  firstName        String         @map(name: "first_name") @db.VarChar(25)
+  lastName         String         @map(name: "last_name") @db.VarChar(25)
+  email            String         @unique @db.VarChar(50)
+  password         String
+  isEmailConfirmed Boolean        @map(name: "is_email_confirmed")
+  roles            Role[]
+  userAdress       UserAdress[]
+  cartItems        CartItems[]
+  productLikes     ProductLikes[]
+
+  @@map(name: "users")
+}
+
+model Role {
+  id     String @id @default(cuid())
+  role   String @db.VarChar(25)
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map(name: "user_id")
+
+  @@map(name: "roles")
+}
+
+model UserAdress {
+  id         String  @id @default(cuid())
+  address    String  @db.VarChar(120)
+  city       String
+  country    String
+  postalCode String
+  user       User    @relation(fields: [userId], references: [id])
+  userId     String  @map(name: "user_id")
+  order      Order[]
+
+  @@map(name: "user_address")
+}
+
+model Product {
+  id              String            @id @default(cuid())
+  name            String            @db.VarChar(80)
+  description     String            @db.Text
+  price           Decimal           @db.Decimal(12, 2)
+  likesCount      Int               @map(name: "likes_count")
+  images          ProductImage[]
+  isEnable        Boolean           @map(name: "is_enable")
+  stockQuantity   Int               @map(name: "stock_quantity")
+  productCategory ProductCategory[]
+  cartItems       CartItems[]
+  orderItems      OrderItems[]
+  productLikes    ProductLikes[]
+
+  @@map(name: "products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  fileName  String  @map(name: "file_name")
+  fileType  String  @map(name: "file_type")
+  mimetype  String  @map(name: "mime_type")
+  url       String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @map(name: "product_id")
+
+  @@map(name: "product_images")
+}
+
+model ProductCategory {
+  id        String  @id @default(cuid())
+  name      String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @map(name: "product_id")
+
+  @@map(name: "product_categories")
+}
+
+model CartItems {
+  id         String   @id @default(cuid())
+  quantity   Int
+  createDate DateTime @default(now())
+  updateDate DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String   @map(name: "product_id")
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @map(name: "user_id")
+
+  @@map(name: "cart_items")
+}
+
+model ProductLikes {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  createDate DateTime @default(now())
+  updateDate DateTime @updatedAt
+}
+
+model OrderItems {
+  id         String   @id @default(cuid())
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(12, 2)
+  createDate DateTime @default(now())
+  updateDate DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    String
+
+  @@map(name: "order_items")
+}
+
+model Order {
+  id                String       @id @default(cuid())
+  total             Decimal      @db.Decimal(12, 2)
+  taxes             Decimal      @db.Decimal(12, 2)
+  orderStatus       String
+  product           OrderItems[]
+  createDate        DateTime     @default(now())
+  updateDate        DateTime     @updatedAt
+  deliveryAddress   UserAdress   @relation(fields: [deliveryAddressId], references: [id])
+  deliveryAddressId String
+
+  @@map(name: "order")
+}

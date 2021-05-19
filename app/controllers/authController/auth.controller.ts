@@ -1,8 +1,16 @@
 import {Request, Response} from 'express';
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 const checkPassword = (password: string) => {
   return password === 'abcde' ? true : false;
 };
+
+const getUsers = async (req: Request, res: Response) => {
+  const data = await prisma.user.findMany();
+  console.log('data', data);
+  return res.status(200).send(data);
+}
 
 const login = async (req: Request, res: Response) => {
   if (!req.body.email || !req.body.password) {
@@ -11,7 +19,7 @@ const login = async (req: Request, res: Response) => {
 
   try {
     const user = await new Promise((resolve) => {
-      resolve(existingUsers.find((user) => user.email === req.body.email));
+      resolve([]);
     });
 
     if (!user) {
@@ -33,4 +41,4 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
-export {login};
+export {login, getUsers};
